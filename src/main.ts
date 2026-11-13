@@ -22,6 +22,7 @@ let currentSeed = parseSeedFromHash();
 let engine = createEdgeKeeperEngine(currentSeed);
 let lastFrame = performance.now();
 let gameOverRendered = false;
+let lastLogSignature = '';
 
 const el = {
   heroTitle: document.getElementById('hero-title')!,
@@ -176,13 +177,17 @@ function updateHud(state: Readonly<GameState>): void {
     syncBrowserFavicon(false);
   }
 
-  // Update live pipeline logs
-  el.pipelineLogs.innerHTML = '';
-  for (const log of state.logs) {
-    const li = document.createElement('li');
-    li.className = `log-${log.severity}`;
-    li.textContent = `[${log.timestamp.toFixed(1)}s] [${log.source}] ${log.detail}`;
-    el.pipelineLogs.appendChild(li);
+  // Update live pipeline logs only when logs change
+  const logSignature = `${state.logs.length}:${state.logs[0]?.id ?? 0}`;
+  if (logSignature !== lastLogSignature) {
+    lastLogSignature = logSignature;
+    el.pipelineLogs.innerHTML = '';
+    for (const log of state.logs) {
+      const li = document.createElement('li');
+      li.className = `log-${log.severity}`;
+      li.textContent = `[${log.timestamp.toFixed(1)}s] [${log.source}] ${log.detail}`;
+      el.pipelineLogs.appendChild(li);
+    }
   }
 }
 
@@ -246,16 +251,28 @@ el.btnMute.addEventListener('click', () => {
 el.btnLang.addEventListener('click', () => {
   locale = locale === 'zh-TW' ? 'en-US' : 'zh-TW';
   applyLocaleText();
-  updateHud(engine.getState());
+  const current = engine.getState();
+  if (current.isGameOver) {
+    renderGameOver(current);
+  }
+  updateHud(current);
 });
 el.btnCopy.addEventListener('click', async () => {
   const st = engine.getState();
-  const report = [
-    `EDGE KEEPER // 403 Defense Report (#seed=${st.seed})`,
-    `Score: ${st.score} | Wave: ${st.wave} | Max Combo: ${st.maxCombo}x`,
-    `403 Blocked: ${st.stats.blockedAttacks} | Auto-Fallbacks: ${st.stats.fallbacksSaved} | Grade F Busted: ${st.stats.roguesBusted}`,
-    `False Positives: ${st.stats.falsePositives} | Cause: ${st.deathReason ?? 'Active'}`
-  ].join('\n');
+  const report =
+    locale === 'zh-TW'
+      ? [
+          `EDGE KEEPER // 403 邊緣防禦戰報 (#seed=${st.seed})`,
+          `積分：${st.score} | 波次：${st.wave} | 最高連擊：${st.maxCombo}x`,
+          `403 攔截：${st.stats.blockedAttacks} | 自動降級救援：${st.stats.fallbacksSaved} | 揪出 Grade F：${st.stats.roguesBusted}`,
+          `誤殺：${st.stats.falsePositives} | 崩潰原因：${st.deathReason ?? '進行中'}`
+        ].join('\n')
+      : [
+          `EDGE KEEPER // 403 Defense Report (#seed=${st.seed})`,
+          `Score: ${st.score} | Wave: ${st.wave} | Max Combo: ${st.maxCombo}x`,
+          `403 Blocked: ${st.stats.blockedAttacks} | Auto-Fallbacks: ${st.stats.fallbacksSaved} | Grade F Busted: ${st.stats.roguesBusted}`,
+          `False Positives: ${st.stats.falsePositives} | Cause: ${st.deathReason ?? 'Active'}`
+        ].join('\n');
   try {
     await navigator.clipboard.writeText(report);
     el.btnCopy.textContent = LOCALES[locale].btnCopied;

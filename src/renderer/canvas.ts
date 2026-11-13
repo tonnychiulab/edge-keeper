@@ -196,11 +196,15 @@ export function createCanvasRenderer(canvas: HTMLCanvasElement): CanvasRenderer 
     ctx.shadowColor = stroke;
     ctx.shadowBlur = 10;
 
-    if (isLegit) {
+    if (isLegit || isObfuscated) {
       ctx.beginPath();
+      if (isObfuscated) {
+        ctx.setLineDash([4, 3]);
+      }
       ctx.arc(px, p.y, p.radius, 0, Math.PI * 2);
       ctx.fill();
       ctx.stroke();
+      ctx.setLineDash([]);
     } else {
       const r = p.radius;
       ctx.beginPath();

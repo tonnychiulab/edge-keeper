@@ -47,6 +47,7 @@ interface MutableStats {
 
 interface MutablePacket extends PacketEntity {
   x: number;
+  vx: number;
   revealed: boolean;
 }
 
@@ -208,7 +209,7 @@ export function createEdgeKeeperEngine(seed: number = 4032026): EdgeKeeperEngine
     let kind: PacketKind = 'attack';
     if (roll < 0.28) {
       kind = 'legit';
-    } else if (roll < 0.45 && wave >= 2) {
+    } else if (roll < 0.44) {
       kind = 'obfuscated';
     }
 
@@ -317,6 +318,7 @@ export function createEdgeKeeperEngine(seed: number = 4032026): EdgeKeeperEngine
     // Move packets & handle WAF barrier collisions
     const speedFactor = overclockTimer > 0 ? 0.65 : 1;
     for (let i = packets.length - 1; i >= 0; i--) {
+      if (isGameOver) break;
       const p = packets[i];
       p.x += p.vx * speedFactor * dt;
 
@@ -349,6 +351,7 @@ export function createEdgeKeeperEngine(seed: number = 4032026): EdgeKeeperEngine
 
     // Update Auto-Router lanes
     for (const lane of lanes) {
+      if (isGameOver) break;
       if (lane.savedFlashTimer > 0) {
         lane.savedFlashTimer = Math.max(0, lane.savedFlashTimer - dt);
       }
@@ -371,6 +374,7 @@ export function createEdgeKeeperEngine(seed: number = 4032026): EdgeKeeperEngine
 
     // Update Casbin upstream nodes
     for (const node of upstreams) {
+      if (isGameOver) break;
       if (node.gradeFlashTimer > 0) {
         node.gradeFlashTimer = Math.max(0, node.gradeFlashTimer - dt);
       }
@@ -438,6 +442,7 @@ export function createEdgeKeeperEngine(seed: number = 4032026): EdgeKeeperEngine
     for (const p of packets) {
       if (!p.revealed) {
         p.revealed = true;
+        p.vx *= 0.6;
         revealedCount += 1;
         addFloat(p.x, p.y - 14, 'DECODED!', '#e879f9');
       }

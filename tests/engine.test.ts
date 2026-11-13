@@ -20,7 +20,6 @@ describe('EdgeKeeper Headless Engine', () => {
     const engine = createEdgeKeeperEngine(101);
     engine.start();
 
-    // Advance until both at least one attack and one legit packet exist
     for (let i = 0; i < 80; i++) {
       engine.tick(0.05);
     }
@@ -33,7 +32,6 @@ describe('EdgeKeeper Headless Engine', () => {
       expect(engine.getState().stats.blockedAttacks).toBeGreaterThanOrEqual(1);
     }
 
-    // Wait for a legit packet if none currently on screen
     for (let i = 0; i < 80; i++) {
       if (engine.getState().packets.some((p) => p.kind === 'legit')) break;
       engine.tick(0.05);
@@ -48,6 +46,29 @@ describe('EdgeKeeper Headless Engine', () => {
       expect(engine.getState().stats.falsePositives).toBe(1);
       expect(engine.getState().slaIntegrity).toBeLessThan(beforeSla);
     }
+  });
+
+  it('reveals and slows obfuscated packets when triggering Signature Scan', () => {
+    const engine = createEdgeKeeperEngine(555);
+    engine.start();
+
+    let foundUnrevealed = false;
+    for (let i = 0; i < 600; i++) {
+      engine.tick(0.05);
+      if (engine.getState().packets.some((p) => p.kind === 'obfuscated' && !p.revealed)) {
+        foundUnrevealed = true;
+        break;
+      }
+    }
+
+    expect(foundUnrevealed).toBe(true);
+    const beforeVx = engine.getState().packets.find((p) => p.kind === 'obfuscated' && !p.revealed)!.vx;
+    const events = engine.triggerSignatureScan();
+    expect(events.sounds).toContain('scan_pulse');
+
+    const afterObf = engine.getState().packets.find((p) => p.kind === 'obfuscated');
+    expect(afterObf?.revealed).toBe(true);
+    expect(afterObf!.vx).toBeLessThan(beforeVx);
   });
 
   it('triggers Auto-Router 403 alert and saves SLA when rerouted to free lane', () => {
@@ -71,7 +92,25 @@ describe('EdgeKeeper Headless Engine', () => {
     expect(engine.getState().lanes[alertLaneIndex].alertActive).toBe(false);
   });
 
-  it('busts Grade F rogue upstream via Authenticity Probe and activates Overclock', () => {
+  it('inflicts gateway timeout penalty when 403 alert is not rerouted in time', () => {
+    const engine = createEdgeKeeperEngine(2026);
+    engine.start();
+
+    let timedOut = false;
+    for (let i = 0; i < 240; i++) {
+      const events = engine.tick(0.05);
+      if (events.sounds.includes('gateway_timeout')) {
+        timedOut = true;
+        break;
+      }
+    }
+
+    expect(timedOut).toBe(true);
+    expect(engine.getState().stats.gatewayTimeouts).toBeGreaterThanOrEqual(1);
+    expect(engine.getState().slaIntegrity).toBeLessThan(100);
+  });
+
+  it('busts Grade F rogue upstream via Authenticity Probe and activates Overclock auto-defense', () => {
     const engine = createEdgeKeeperEngine(9001);
     engine.start();
 
@@ -91,5 +130,30 @@ describe('EdgeKeeper Headless Engine', () => {
     expect(engine.getState().stats.roguesBusted).toBe(1);
     expect(engine.getState().overclockTimer).toBeGreaterThan(0);
     expect(engine.getState().upstreams[rogueIndex].lastGrade).toBe('F');
+
+    const slaDuringOverclock = engine.getState().slaIntegrity;
+    for (let i = 0; i < 40; i++) {
+      engine.tick(0.05);
+    }
+    expect(engine.getState().slaIntegrity).toBeGreaterThanOrEqual(slaDuringOverclock);
+  });
+
+  it('transitions to Game Over cleanly when SLA reaches 0 and stops further mutations', () => {
+    const engine = createEdgeKeeperEngine(4032026);
+    engine.start();
+
+    for (let i = 0; i < 900; i++) {
+      engine.tick(0.05);
+      if (engine.getState().isGameOver) break;
+    }
+
+    const finalState = engine.getState();
+    expect(finalState.isGameOver).toBe(true);
+    expect(finalState.isRunning).toBe(false);
+    expect(finalState.slaIntegrity).toBe(0);
+    expect(finalState.deathReason).toBeTruthy();
+
+    engine.tick(0.05);
+    expect(engine.getState()).toEqual(finalState);
   });
 });

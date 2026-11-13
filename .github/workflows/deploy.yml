@@ -66,3 +66,14 @@ jobs:
           accountId: ${{ vars.CLOUDFLARE_ACCOUNT_ID }}
           wranglerVersion: '4'
           command: deploy --config wrangler.jsonc
+
+  deploy_pending_notice:
+    name: Cloudflare Secrets Not Configured Yet
+    needs: verify
+    if: github.ref == 'refs/heads/main' && vars.CLOUDFLARE_ACCOUNT_ID == ''
+    runs-on: ubuntu-latest
+    steps:
+      - name: Print Setup Reminder
+        run: |
+          echo "Cloudflare deployment skipped because vars.CLOUDFLARE_ACCOUNT_ID is not set."
+          echo "Run 'npm run wizard' locally to bind CLOUDFLARE_ACCOUNT_ID and CLOUDFLARE_API_TOKEN."

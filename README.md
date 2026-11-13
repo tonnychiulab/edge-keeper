@@ -16,6 +16,10 @@
   </a>
 </p>
 
+<p align="center">
+  <sub>☁️ 線上版位址為 <code>https://edge-keeper.tw365ai.workers.dev</code>（首次啟用需執行 <code>npm run wizard</code> 填入你的 Cloudflare 憑據觸發部署）</sub>
+</p>
+
 > 把日常維運最常碰到的三種鳥事——**WAF 擋攻擊怕誤殺**、**AI Gateway 踩中付費模型 403**、還有**上游供應商偷換廉價模型**——做成一個純前端、打開就能玩的快節奏街機小遊戲。
 
 ---
