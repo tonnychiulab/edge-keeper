@@ -1,0 +1,22 @@
+{
+  "name": "edge-keeper",
+  "version": "1.0.0",
+  "description": "EDGE KEEPER - 403 Defense & Gateway Overlord Arcade Game",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite --host",
+    "build": "tsc --noEmit && vite build",
+    "preview": "vite preview",
+    "test": "vitest run",
+    "test:e2e": "node scripts/e2e-browser-check.mjs",
+    "typecheck": "tsc --noEmit",
+    "wizard": "bash scripts/setup-cicd-wizard.sh"
+  },
+  "devDependencies": {
+    "playwright-core": "^1.50.0",
+    "typescript": "^5.7.2",
+    "vite": "^5.4.11",
+    "vitest": "^2.1.8"
+  }
+}

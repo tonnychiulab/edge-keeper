@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="zh-TW">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="EDGE KEEPER：融合 WAF 攔截、AI Gateway 403 自動降級與上游驗明正身探針的快節奏三防線街機小遊戲。"
+    />
+    <meta name="theme-color" content="#05070d" />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="EDGE KEEPER｜邊緣守門員：403 攻防戰" />
+    <meta
+      property="og:description"
+      content="點擊攔截 403 攻擊封包、一鍵自動降級救火、揪出 Grade F 假貨供應商的賽博街機防禦戰。"
+    />
+    <title>EDGE KEEPER｜邊緣守門員：403 攻防戰</title>
+    <link
+      rel="icon"
+      type="image/svg+xml"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='12' fill='%23080b12'/%3E%3Cpath d='M32 8L52 16V31C52 43.5 43.5 52.8 32 56C20.5 52.8 12 43.5 12 31V16L32 8Z' fill='none' stroke='%2300ff9d' stroke-width='4'/%3E%3Ctext x='32' y='38' text-anchor='middle' font-family='monospace' font-weight='bold' font-size='18' fill='%2300ff9d'%3E403%3C/text%3E%3C/svg%3E"
+    />
+  </head>
+  <body>
+    <header class="topbar">
+      <div class="brand">
+        <h1 id="hero-title">EDGE KEEPER // 邊緣守門員</h1>
+        <p id="hero-subtitle">waf-checker × cloudflare-auto-router × casbin-gateway 三防線街機實戰</p>
+      </div>
+      <div class="controls-bar">
+        <button id="btn-scan" class="btn btn-scan" type="button">[Space] 特徵掃描</button>
+        <button id="btn-probe" class="btn btn-probe" type="button">[E] 驗明正身探針</button>
+        <button id="btn-mute" class="btn" type="button">音效：開</button>
+        <button id="btn-lang" class="btn" type="button">EN</button>
+      </div>
+    </header>
+
+    <section class="hud-grid">
+      <div class="hud-card">
+        <div class="hud-label" id="label-score">防禦積分</div>
+        <div class="hud-value" id="val-score">0</div>
+      </div>
+      <div class="hud-card">
+        <div class="hud-label" id="label-combo">連擊</div>
+        <div class="hud-value" id="val-combo">0x</div>
+      </div>
+      <div class="hud-card">
+        <div class="hud-label" id="label-wave">波次</div>
+        <div class="hud-value" id="val-wave">1</div>
+      </div>
+      <div class="hud-card">
+        <div class="hud-label" id="label-sla">SLA 完整度</div>
+        <div class="hud-value" id="val-sla">100%</div>
+        <div class="sla-bar-wrap"><div class="sla-bar" id="sla-bar"></div></div>
+      </div>
+      <div class="hud-card">
+        <div class="hud-label" id="label-seed">隨機種子</div>
+        <div class="hud-value" id="val-seed">#4032026</div>
+      </div>
+    </section>
+
+    <div id="overclock-banner" class="overclock-banner hidden"></div>
+
+    <main class="arena-wrap">
+      <canvas id="arena" width="1000" height="600"></canvas>
+
+      <div id="start-overlay" class="overlay">
+        <div class="modal">
+          <span class="pill" id="badge-projects">三專案融合街機防禦系統</span>
+          <h2 id="start-title">EDGE KEEPER // 邊緣守門員</h2>
+          <ol class="rules-list">
+            <li id="rule-waf"></li>
+            <li id="rule-router"></li>
+            <li id="rule-casbin"></li>
+          </ol>
+          <div class="modal-actions">
+            <button id="btn-start" class="btn btn-primary" type="button">啟動邊緣防線 →</button>
+          </div>
+        </div>
+      </div>
+
+      <div id="gameover-overlay" class="overlay hidden">
+        <div class="modal">
+          <h2 id="gameover-title">SLA 完整度歸零：邊緣防線失守</h2>
+          <p id="gameover-cause"></p>
+          <div class="stats-grid" id="gameover-stats"></div>
+          <div class="modal-actions">
+            <button id="btn-restart" class="btn btn-primary" type="button">再守一波 →</button>
+            <button id="btn-copy" class="btn" type="button">複製防禦戰報</button>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <section class="bottom-panel">
+      <div class="pipeline-box">
+        <div class="pipeline-title" id="label-pipeline">即時決策流水線</div>
+        <ul class="pipeline-logs" id="pipeline-logs"></ul>
+      </div>
+    </section>
+
+    <footer class="hint-bar" id="hint-controls"></footer>
+
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
